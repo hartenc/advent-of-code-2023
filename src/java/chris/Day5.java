@@ -231,77 +231,77 @@ public class Day5 {
             });
             AtomicLong lowestPos = new AtomicLong(Long.MAX_VALUE);
 
+            for (int x = 0; x < seeds.size(); x += 2) {
+                System.out.println(String.format("Serie %d, %d zaad, laagste nu %d", x, seeds.get(x+1), lowestPos.get()));
+                for (int y = 0; y < seeds.get(x + 1); y++) {
+                    AtomicLong pos = new AtomicLong(seeds.get(x) + y);
 
-//            for (int x = 0; x < seeds.size(); x += 2) {
-//                for (int y = 0; y < seeds.get(x + 1); y++) {
-//                    AtomicLong pos = new AtomicLong(seeds.get(x) + y);
-//
-//                    AtomicBoolean found = new AtomicBoolean();
-//
-//                    soil.forEach(sl -> {
-//                        if (found.get()) return;
-//                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
-//                            pos.set(sl.target + (pos.get() - sl.source));
-//                            found.set(true);
-//                        }
-//                    });
-//
-//                    found.set(false);
-//                    fert.forEach(sl -> {
-//                        if (found.get()) return;
-//                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
-//                            pos.set(sl.target + (pos.get() - sl.source));
-//                            found.set(true);
-//                        }
-//                    });
-//
-//                    found.set(false);
-//                    water.forEach(sl -> {
-//                        if (found.get()) return;
-//                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
-//                            pos.set(sl.target + (pos.get() - sl.source));
-//                            found.set(true);
-//                        }
-//                    });
-//
-//                    found.set(false);
-//                    light.forEach(sl -> {
-//                        if (found.get()) return;
-//                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
-//                            pos.set(sl.target + (pos.get() - sl.source));
-//                            found.set(true);
-//                        }
-//                    });
-//
-//                    found.set(false);
-//                    temp.forEach(sl -> {
-//                        if (found.get()) return;
-//                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
-//                            pos.set(sl.target + (pos.get() - sl.source));
-//                            found.set(true);
-//                        }
-//                    });
-//
-//                    found.set(false);
-//                    hum.forEach(sl -> {
-//                        if (found.get()) return;
-//                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
-//                            pos.set(sl.target + (pos.get() - sl.source));
-//                            found.set(true);
-//                        }
-//                    });
-//
-//                    found.set(false);
-//                    ground.forEach(sl -> {
-//                        if (found.get()) return;
-//                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
-//                            pos.set(sl.target + (pos.get() - sl.source));
-//                            found.set(true);
-//                        }
-//                    });
-//                    if (pos.get() < lowestPos.get()) lowestPos.set(pos.get());
-//                }
-//            }
+                    AtomicBoolean found = new AtomicBoolean();
+
+                    soil.forEach(sl -> {
+                        if (found.get()) return;
+                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
+                            pos.set(sl.target + (pos.get() - sl.source));
+                            found.set(true);
+                        }
+                    });
+
+                    found.set(false);
+                    fert.forEach(sl -> {
+                        if (found.get()) return;
+                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
+                            pos.set(sl.target + (pos.get() - sl.source));
+                            found.set(true);
+                        }
+                    });
+
+                    found.set(false);
+                    water.forEach(sl -> {
+                        if (found.get()) return;
+                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
+                            pos.set(sl.target + (pos.get() - sl.source));
+                            found.set(true);
+                        }
+                    });
+
+                    found.set(false);
+                    light.forEach(sl -> {
+                        if (found.get()) return;
+                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
+                            pos.set(sl.target + (pos.get() - sl.source));
+                            found.set(true);
+                        }
+                    });
+
+                    found.set(false);
+                    temp.forEach(sl -> {
+                        if (found.get()) return;
+                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
+                            pos.set(sl.target + (pos.get() - sl.source));
+                            found.set(true);
+                        }
+                    });
+
+                    found.set(false);
+                    hum.forEach(sl -> {
+                        if (found.get()) return;
+                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
+                            pos.set(sl.target + (pos.get() - sl.source));
+                            found.set(true);
+                        }
+                    });
+
+                    found.set(false);
+                    ground.forEach(sl -> {
+                        if (found.get()) return;
+                        if (pos.get() >= sl.source && pos.get() < (sl.source + sl.range)) {
+                            pos.set(sl.target + (pos.get() - sl.source));
+                            found.set(true);
+                        }
+                    });
+                    if (pos.get() < lowestPos.get()) lowestPos.set(pos.get());
+                }
+            }
 
             return lowestPos.toString();
         } catch (Exception e) {
