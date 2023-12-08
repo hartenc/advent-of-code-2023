@@ -78,14 +78,34 @@ public class Day8 {
                 Integer pos = (int)((lengte - 1) % (long)route.length());
                 Character pad = route.charAt(pos);
                 for(int x=0; x<paths.size();x++) {
+                    if(paths.get(x).foundAt != null) continue;
                     switch (pad) {
                         case 'L' -> paths.set(x, routes.get(paths.get(x).links));
                         case 'R' -> paths.set(x, routes.get(paths.get(x).rechts));
                     }
+                    if(paths.get(x).naam.charAt(2) == 'Z' && paths.get(x).foundAt == null)
+                    {
+                        paths.get(x).foundAt = lengte;
+                        continue;
+                    }
                 }
-                if(paths.stream().filter(path -> path.naam.charAt(2) == 'Z').count() == paths.size()) break;
+
+                if(paths.stream().filter(path -> path.foundAt != null).count() == paths.size() ) break;
             }
-            return lengte.toString();
+
+            BigDecimal sum;
+            long iterator = 1L;
+            // Dit stuk lijkt niet te werken. Met de hand gedaan
+            while(true) {
+                int matches = 1;
+                sum = new BigDecimal(paths.get(0).foundAt).multiply(new BigDecimal(iterator));
+                for (int x = 1; x < paths.size(); x++) {
+                    if(new BigDecimal(paths.get(x).foundAt).multiply(new BigDecimal(iterator)).equals(sum)) matches++;
+                }
+                if (matches == paths.size()) break;
+                iterator++;
+            }
+            return sum.toString();
         } catch (Exception e) {
             e.printStackTrace();
             return "";
@@ -102,6 +122,7 @@ public class Day8 {
         public String naam;
         public String links;
         public String rechts;
+        public Long foundAt = null;
 
         public Node(String links, String rechts) {
             this.links = links;
