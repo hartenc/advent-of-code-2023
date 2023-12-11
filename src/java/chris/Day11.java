@@ -107,7 +107,7 @@ public class Day11 {
                 }
                 if (empty == filled.size()) {
                     for (int z = 0; z < filled.size(); z++) {
-                        filled.get(z).add(x, filled.get(z).get(x) == 'X' ? 'X' : 'X');
+                        filled.get(z).add(x, 'X');
                     }
                     x++;
 
