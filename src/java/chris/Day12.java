@@ -18,7 +18,7 @@ public class Day12 {
 
     private static String puzzel1() {
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel12a.txt"))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel12.txt"))) {
             List<Puzzel> puzzels = new ArrayList<>();
             String regel;
             while ((regel = bufferedReader.readLine()) != null) {
@@ -42,7 +42,6 @@ public class Day12 {
     }
 
     private static void solve(Puzzel puzzel, int startGetal, int startIndex, AtomicLong huidigeWaarde) {
-
         Integer lengte = puzzel.aantallen.get(startGetal);
         for (int i = startIndex; i < puzzel.code.length(); i++) {
             if(nummers.size() > startGetal) nummers.remove(nummers.size()-1);
