@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -46,27 +47,20 @@ public class Day12 {
     private static String puzzel2() {
 
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel12.txt"))) {
-            List<Puzzel> puzzels = new ArrayList<>();
+            List<Deel> delen = new ArrayList<>();
             String regel;
             while ((regel = bufferedReader.readLine()) != null) {
                 String puzzel = regel.split(" ")[0];
                 List<Integer> aantallen = Arrays.stream(regel.split(" ")[1].split(",")).map(Integer::parseInt).collect(Collectors.toList());
-                String longPuzzel = IntStream.range(0,5).mapToObj(i -> puzzel).collect(Collectors.joining("?"));
+                String longPuzzel = IntStream.range(0,5).mapToObj(i -> puzzel).collect(Collectors.joining("?")) + ".";
                 List<Integer> longList = new ArrayList<>();
                 for (int x=0;x<5;x++) {
                     longList.addAll(aantallen);
                 }
-                puzzels.add(new Puzzel(longPuzzel, longList));
+                delen.add(new Deel(longPuzzel, longList));
             }
             AtomicLong total = new AtomicLong();
-            puzzels.forEach(puzzel -> {
-                AtomicLong aantallen = new AtomicLong();
-                solve(puzzel, 0, 0, aantallen);
-                matches.clear();
-                nummers.clear();
-                System.out.println(aantallen.get());
-                total.addAndGet(aantallen.get());
-            });
+            delen.forEach(deel -> total.addAndGet(deel.mogelijk()));
             return total.toString();
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,4 +129,92 @@ public class Day12 {
             this.aantallen = aantallen;
         }
     }
+
+    private static class Deel {
+        private final String land;
+        private final int landId;
+
+        private final List<Integer> nummers;
+        private final int nummerId;
+
+        private final int groep;
+
+        private final HashMap<Deel, Long> cache;
+
+        public Deel(String grond, List<Integer> nummers) {
+            this(grond, nummers, 0, 0, 0, new HashMap<>());
+        }
+
+        private Deel(String grond, List<Integer> nummers, int groep, int landId, int nummerId, HashMap<Deel, Long> cache) {
+            this.land = grond;
+            this.nummers = nummers;
+            this.groep = groep;
+            this.landId = landId;
+            this.nummerId = nummerId;
+            this.cache = cache;
+        }
+
+        public long mogelijk() {
+            if (cache.containsKey(this)) {
+                return cache.get(this);
+            }
+            long waarde = 0;
+            if (landId == land.length()) {
+                if (groep == 0 && nummerId == nummers.size()) {
+                    waarde = 1;
+                } else {
+                    waarde = 0;
+                }
+            } else {
+                if (land.charAt(landId) == '.') {
+                    waarde = leeg();
+                } else if (land.charAt(landId) == '#') {
+                    waarde = hekje();
+                } else if (land.charAt(landId) == '?') {
+                    waarde = hekje() + leeg();
+                }
+            }
+            cache.put(this, waarde);
+            return waarde;
+        }
+
+        private long hekje() {
+            if (nummerId == nummers.size() || groep >= nummers.get(nummerId)) {
+                return 0;
+            } else {
+                return new Deel(land, nummers, groep + 1, landId + 1, nummerId, cache).mogelijk();
+            }
+        }
+
+        private long leeg() {
+            if (groep > 0) {
+                if (nummers.get(nummerId) == groep) {
+                    return new Deel(land, nummers, 0, landId + 1, nummerId + 1, cache).mogelijk();
+                } else {
+                    return 0;
+                }
+            } else {
+                return new Deel(land, nummers, 0, landId + 1, nummerId, cache).mogelijk();
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Deel)) return false;
+            Deel deel = (Deel) o;
+            if (landId != deel.landId) return false;
+            if (nummerId != deel.nummerId) return false;
+            return groep == deel.groep;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = landId;
+            result = 31 * result + nummerId;
+            result = 31 * result + groep;
+            return result;
+        }
+    }
+
 }
