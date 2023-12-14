@@ -67,8 +67,8 @@ public class Day14 {
                 field.add(fill);
             }
 
-
-            for(long it = 0; it < 1_000_000_000; it++) {
+            List<Long> gewichten = new ArrayList<>();
+            for(long it = 0; it < 1000000000; it++) {
                 // roll north
                 for (int y = 0; y < field.size(); y++) {
                     for (int x = 0; x < field.get(0).size(); x++) {
@@ -107,7 +107,7 @@ public class Day14 {
                     for (int x = 0; x < field.get(0).size(); x++) {
                         if (field.get(y).get(x) == 'O') {
                             int fall = 1;
-                            while (y + fall < (field.size() - 1) && field.get(y + fall).get(x) != '#' && field.get(y + fall).get(x) != 'O') {
+                            while (y + fall < (field.size()) && field.get(y + fall).get(x) != '#' && field.get(y + fall).get(x) != 'O') {
                                 fall++;
                             }
                             fall--;
@@ -124,7 +124,7 @@ public class Day14 {
                     for (int y = 0; y < field.size(); y++) {
                         if (field.get(y).get(x) == 'O') {
                             int fall = 1;
-                            while (x + fall < (field.get(0).size() - 1) && field.get(y).get(x + fall) != '#' && field.get(y).get(x + fall) != 'O') {
+                            while (x + fall < (field.get(0).size()) && field.get(y).get(x + fall) != '#' && field.get(y).get(x + fall) != 'O') {
                                 fall++;
                             }
                             fall--;
@@ -144,8 +144,7 @@ public class Day14 {
                     }
                 }
                 // antwoord uit deze bak halen
-                if (it % 10000L == 0)
-                 System.out.println(it + " " + gewicht);
+                if(it % 1000 == 0) System.out.println("op " + it + " val " + gewicht);
             }
             Long gewicht = 0L;
             for (int y = 0; y < field.size(); y++) {
@@ -155,6 +154,7 @@ public class Day14 {
                     }
                 }
             }
+
 
             System.out.println("eindtijd " + LocalDateTime.now());
 
