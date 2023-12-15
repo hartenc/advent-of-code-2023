@@ -144,7 +144,7 @@ public class Day14 {
                     }
                 }
                 // antwoord uit deze bak halen
-                if(it < 1000) System.out.println("op " + it + " val " + gewicht);
+                if((it+1) % 1000==0) System.out.println("op " + it + " val " + gewicht);
             }
             Long gewicht = 0L;
             for (int y = 0; y < field.size(); y++) {
