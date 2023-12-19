@@ -13,6 +13,7 @@ public class Day19 {
     private static List<Item> items = new ArrayList<>();
     private static List<Item> goed = new ArrayList<>();
     private static List<Instructie> criteria = new ArrayList<>();
+    private static Long score = 0L;
     public static void main(String[] args) {
 //        System.out.println(puzzel1());
         System.out.println(puzzel2());
@@ -83,23 +84,15 @@ public class Day19 {
                         Instructie i = new Instructie(teken, operator, vergelijk, target);
                         instructieList.add(i);
                     }
-                    Instructie ins = new Instructie('X','X',0,instructies[instructies.length-1].replace('}',' ').trim());
-                    instructieList.add(ins);
+                    instructieList.add(new Instructie('X','X',0,instructies[instructies.length-1].replace('}',' ').trim()));
                     dataMap.put(naam, instructieList);
-
             }
-            dataMap.forEach((naam, instructies) -> {
-                if(instructies.get(instructies.size()-1).target.equals("A")) reverseEvaluate(naam, instructies);
-                Integer minX = 0;
-                Integer maxX = 4001;
-                for(int i = 1; i<criteria.size();i++) {
-                    if(criteria.get(i).teken=='x' && criteria.get(i).operator == '>' && criteria.get(i).vergelijk > minX) minX = criteria.get(i).vergelijk;
-                    if(criteria.get(i).teken=='x' && criteria.get(i).operator == '<' && criteria.get(i).vergelijk < maxX) maxX = criteria.get(i).vergelijk;
-                }
-                String a = "";
+            dataMap.put("A", List.of(new Instructie('A',null,null,null)));
+            dataMap.put("R", List.of(new Instructie('R',null,null,null)));
+            items.forEach(item -> {
+                List<Instructie> instructies = new ArrayList<>();
+                evaluatePath(instructies, dataMap.get("in"));
             });
-
-
             return goed.stream().map(a -> Long.parseLong(""+(a.x+a.m+a.a+a.s))).reduce(0L, (a, b) -> a+b).toString();
         } catch (Exception e) {
             e.printStackTrace();
@@ -178,20 +171,75 @@ public class Day19 {
         return true;
     }
 
-    private static void reverseEvaluate(String naam, List<Instructie> instructies) {
-        for(int x=instructies.size()-1;x >= 0; x--) {
-            criteria.add(instructies.get(x));
-        }
-        dataMap.forEach((nm, ins) -> {
-
-           for(int i=0;i<ins.size();i++) {
-
-               if(ins.get(i).target.equals(naam)) {
-                    if(nm.equals("in")) return;
-                    reverseEvaluate(nm, ins.subList(0, i+1));
-               }
-           }
-        });
+    private static boolean evaluatePath(List<Instructie> path, List<Instructie> instructies) {
+//        for(int x=0;x<instructies.size();x++)
+//        {
+//            Instructie instructie = instructies.get(x);
+//            path.add(instructie);
+//            if(instructie.teken=='A') {
+//                return true;
+//            }
+//            if(instructie.teken=='R') {
+//                return true;
+//            }
+//            if(instructie.teken=='X') {
+//                boolean result = evaluate(i, dataMap.get(instructie.target));
+//                if(result) return true;
+//            }
+//            if(instructie.teken=='x') {
+//                if (instructie.operator == '<') {
+//                    if(i.x < instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                } else {
+//                    if(i.x > instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                }
+//            }
+//            if(instructie.teken=='m') {
+//                if (instructie.operator == '<') {
+//                    if(i.m < instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                } else {
+//                    if(i.m > instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                }
+//            }
+//            if(instructie.teken=='a') {
+//                if (instructie.operator == '<') {
+//                    if(i.a < instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                } else {
+//                    if(i.a > instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                }
+//            }
+//            if(instructie.teken=='s') {
+//                if (instructie.operator == '<') {
+//                    if(i.s < instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                } else {
+//                    if(i.s > instructie.vergelijk) {
+//                        boolean result = evaluate(i, dataMap.get(instructie.target));
+//                        if(result) return true;
+//                    }
+//                }
+//            }
+//        }
+        return true;
     }
 
     private static class Instructie {
