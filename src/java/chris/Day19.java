@@ -6,20 +6,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Day19 {
     private static Map<String, List<Instructie>> dataMap = new HashMap<>();
     private static List<Item> items = new ArrayList<>();
     private static List<Item> goed = new ArrayList<>();
+    private static List<Instructie> criteria = new ArrayList<>();
     public static void main(String[] args) {
-        System.out.println(puzzel1());
-//        System.out.println(puzzel2());
+//        System.out.println(puzzel1());
+        System.out.println(puzzel2());
     }
 
     private static String puzzel1() {
-
-
-
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel19.txt"))) {
             String regel;
             boolean data = true;
@@ -57,6 +56,50 @@ public class Day19 {
             items.forEach(item -> {
                 evaluate(item, dataMap.get("in"));
             });
+            return goed.stream().map(a -> Long.parseLong(""+(a.x+a.m+a.a+a.s))).reduce(0L, (a, b) -> a+b).toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private static String puzzel2() {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel19.txt"))) {
+            String regel;
+            boolean data = true;
+            while ((regel = bufferedReader.readLine()) != null) {
+                if(regel.isEmpty()) {
+                    break;
+                }
+                    // lees data
+                    String naam = regel.split("\\{")[0];
+                    String instructies[] = regel.split("\\{")[1].split(",");
+                    List<Instructie> instructieList = new ArrayList<>();
+                    for(int x=0;x<instructies.length -1;x++) {
+                        Character teken = instructies[x].charAt(0);
+                        Character operator = instructies[x].charAt(1);
+                        Integer vergelijk = Integer.parseInt(instructies[x].substring(2).split(":")[0]);
+                        String target = instructies[x].substring(2).split(":")[1];
+                        Instructie i = new Instructie(teken, operator, vergelijk, target);
+                        instructieList.add(i);
+                    }
+                    Instructie ins = new Instructie('X','X',0,instructies[instructies.length-1].replace('}',' ').trim());
+                    instructieList.add(ins);
+                    dataMap.put(naam, instructieList);
+
+            }
+            dataMap.forEach((naam, instructies) -> {
+                if(instructies.get(instructies.size()-1).target.equals("A")) reverseEvaluate(naam, instructies);
+                Integer minX = 0;
+                Integer maxX = 4001;
+                for(int i = 1; i<criteria.size();i++) {
+                    if(criteria.get(i).teken=='x' && criteria.get(i).operator == '>' && criteria.get(i).vergelijk > minX) minX = criteria.get(i).vergelijk;
+                    if(criteria.get(i).teken=='x' && criteria.get(i).operator == '<' && criteria.get(i).vergelijk < maxX) maxX = criteria.get(i).vergelijk;
+                }
+                String a = "";
+            });
+
+
             return goed.stream().map(a -> Long.parseLong(""+(a.x+a.m+a.a+a.s))).reduce(0L, (a, b) -> a+b).toString();
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,6 +176,22 @@ public class Day19 {
             }
         }
         return true;
+    }
+
+    private static void reverseEvaluate(String naam, List<Instructie> instructies) {
+        for(int x=instructies.size()-1;x >= 0; x--) {
+            criteria.add(instructies.get(x));
+        }
+        dataMap.forEach((nm, ins) -> {
+
+           for(int i=0;i<ins.size();i++) {
+
+               if(ins.get(i).target.equals(naam)) {
+                    if(nm.equals("in")) return;
+                    reverseEvaluate(nm, ins.subList(0, i+1));
+               }
+           }
+        });
     }
 
     private static class Instructie {
