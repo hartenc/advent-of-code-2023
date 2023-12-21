@@ -5,14 +5,13 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 
 public class Day17 {
-    private static List<List<Pos>> finish = new ArrayList<>();
     private static List<List<Integer>> field = new ArrayList<>();
-    private static List<List<Pos>> vals = new ArrayList<>();
-    private static List<List<Pos>> routes = new ArrayList<>();
-    private static Integer kortsteRoute = Integer.MAX_VALUE;
+    private static List<List<Integer>> lengtes = new ArrayList<>();
+    private static List<Route> routes = new ArrayList<>();
 
     public static void main(String[] args) {
         System.out.println(puzzel1());
@@ -21,8 +20,7 @@ public class Day17 {
 
     // 0 = boven 1 = rechts 2=onder 3 = links
     private static String puzzel1() {
-        int it = 0;
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel17a.txt"))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel17.txt"))) {
 
             String regel;
             while ((regel = bufferedReader.readLine()) != null) {
@@ -32,164 +30,77 @@ public class Day17 {
                     fill.add(Integer.parseInt(regel.substring(x, x + 1)));
                 }
                 field.add(fill);
-//                vals.add(fill.stream().map(f -> new Pos(0,0,999999999,0,0,0,0)).collect(Collectors.toList()));
             }
-//            vals.get(0).set(0, new Pos(0,0, field.get(0).get(0),0,0,0,0));
+            Route r1 = new Route();
+            r1.route.add(new Pos(1,0, 3));
+            r1.score += field.get(0).get(1);
+            Route r2 = new Route();
+            r2.route.add(new Pos(0,1, 2));
+            r2.score += field.get(1).get(0);
 
-            Pos start = new Pos(0, 0, new ArrayList<>(), 1, field.get(0).get(0));
-            start.trail.add(new Pos(0, 0, List.of(new Pos(0, 0, new ArrayList<>(), field.get(0).get(0))), field.get(0).get(0)));
-            ArrayList<Pos> list = new ArrayList<>();
-            list.add(start);
-            routes.add(list);
-            while (finish.size() < 1000 && routes.size() != 0) {
-//                if (finish.size() % 1000 == 0) System.out.println("Finish " + finish.size());
+            routes.add(r1);
+            routes.add(r2);
+            long it = 0;
+            while(true) {
                 it++;
-
-//                routes.removeIf(route -> route.size() > 25);
-                routes.sort(Comparator.comparingInt(posA -> posA.get(posA.size() - 1).score)); // + (((field.size() - posA.get(posA.size()-1).x)+ (field.size() - posA.get(posA.size()-1).y))*5))
-//                for(int i=0; i<Math.min(10, routes.size()); i++) {
-//                    System.out.println(routes.get(i).stream().map(pos -> pos.x + " " + pos.y).collect(Collectors.joining("|")) + " = " + routes.get(i).get(routes.get(i).size()-1).score);
-//                }
-//                System.out.println();
-//                if(routes.size() > 1000) routes = routes.subList(0, 1000);
-
-                List<Pos> nieuweLijst = new ArrayList<>();
-                for(int x=0;x<Math.min(100, routes.size()); x++) {
-                    hardCopy(nieuweLijst, routes.get(x));
-
-                    calc(nieuweLijst.get(nieuweLijst.size() - 1).x, nieuweLijst.get(nieuweLijst.size() - 1).y, nieuweLijst);
+                routes.sort((a, b) -> {
+                    if(a.score != b.score) {
+                        return a.score - b.score;
+                    } else {
+                        if (a.route.size() != b.route.size()) {
+                            return b.route.size() - a.route.size();
+                        } else {
+                            return b.route.get(b.route.size()-1).x - a.route.get(a.route.size()-1).x;
+                        }
+                    }
+                });
+                calc(routes.get(0));
+//                if(routes.size() > 10000)
+//                    routes = routes.subList(0,10000);
+                if(it % 10000 == 0) {
+                    String br = "";
                 }
-                if (it % 10000 == 0) {
-                    System.out.println("Still iterating at " + it + " with " + routes.size() + " routes");
+                if(routes.get(0).route.get(routes.get(0).route.size()-1).x == field.size()-1 && routes.get(0).route.get(routes.get(0).route.size()-1).y == field.size()-1) {
+                    break;
                 }
-//                vals.forEach(col -> {
-//                    col.forEach(col2 -> System.out.print(col2.toString() + ";"));
-//                    System.out.println("");
-//                });
-//                System.out.println("");
             }
-//            finish.forEach(fn ->
-//            {
-//                fn.get(0).score = fn.stream().map(ps -> field.get(ps.y).get(ps.x)).reduce(0, Integer::sum);
-//
-//            });
-            finish.sort(Comparator.comparingInt(a -> a.get(a.size() - 1).score));
-            vals.forEach(col -> {
-                col.forEach(col2 -> System.out.print(col2.toString() + ";"));
-                System.out.println("");
+            routes.forEach(route -> {
+                if (route.route.stream().anyMatch(pos -> pos.x==5 && pos.y==1)) {
+                    String bk = ";";
+                }
             });
-            vals.forEach(col -> {
-                col.forEach(col2 -> System.out.print(col2.score + ";"));
-                System.out.println("");
-            });
-            System.out.println("");
-            return "" + finish.get(0).get(finish.get(0).size() - 1).score;
+
+            return "";
         } catch (Exception e) {
             e.printStackTrace();
             return "";
         }
     }
 
-    private static void calc(int x, int y, List<Pos> pos) {
-        if (x == field.get(0).size() - 1 && y == field.size() - 1) {
-            List<Pos> res = new ArrayList<>();
-            hardCopy(res, pos);
-            finish.add(res);
-            Integer lengte = res.stream().map(ps -> field.get(ps.y).get(ps.x)).reduce(0, Integer::sum);
-            if (lengte < kortsteRoute) kortsteRoute = lengte;
-            if (lengte < 105) {
-                String bk = "";
-            }
-            System.out.println("EINDE: " + lengte);
-            routes.remove(0);
-            return;
-        }
-        if (x == 2 && y == 1) {
-            String bk = "";
-        }
+    private static void calc(Route route) {
+        int x = route.route.get(route.route.size()-1).x;
+        int y = route.route.get(route.route.size()-1).y;
+        List<Pos> pos = route.route;
         if (canGoRight(x, y, pos)) {
-            List<Pos> newPos = new ArrayList<>();
-            hardCopy(newPos, pos);
-            newPos.add(new Pos(x + 1, y, newPos, 1, 0));
-            newPos.get(newPos.size() - 1).score = newPos.stream().map(ps -> field.get(ps.y).get(ps.x)).reduce(0, Integer::sum);
-//            if(vals.get(y).get(x+1) > newPos.get(newPos.size()-1).score) vals.get(y).set(x + 1, newPos.get(newPos.size()-1).score);
-//            Optional<List<Pos>> routeMatch = routes.stream().filter(rt -> rt.stream().anyMatch(ps -> ps.containsXY(x +1 , y ))).findFirst();
-//            if(routeMatch.isPresent()) {
-//                if (routeMatch.get().stream().anyMatch(ps -> ps.x == x+1 && ps.y == y && ps.score > newPos.get(newPos.size()-1).score)) {
-//                    routes.remove(routeMatch.get());
-//                }
-//            }
-//            routeMatch.ifPresent(posList -> routes.remove(posList));
-            routes.add(newPos);
+            routes.add(new Route(route, 3));
         }
 
         if (canGoDown(x, y, pos)) {
-            List<Pos> newPos = new ArrayList<>();
-            hardCopy(newPos, pos);
-            newPos.add(new Pos(x, y + 1, newPos, 2, 0));
-            newPos.get(newPos.size() - 1).score = newPos.stream().map(ps -> field.get(ps.y).get(ps.x)).reduce(0, Integer::sum);
-//            if(vals.get(y+1).get(x) > newPos.get(newPos.size()-1).score) vals.get(y + 1).set(x, newPos.get(newPos.size()-1).score);
-//            Optional<List<Pos>> routeMatch = routes.stream().filter(rt -> rt.stream().anyMatch(ps -> ps.containsXY(x , y+1 ))).findFirst();
-//            if(routeMatch.isPresent()) {
-//                if (routeMatch.get().stream().anyMatch(ps -> ps.x == x && ps.y == y+1 && ps.score > newPos.get(newPos.size()-1).score)) {
-//                    routes.remove(routeMatch.get());
-//                }
-//            }
-//            routeMatch.ifPresent(posList -> routes.remove(posList));
-            routes.add(newPos);
+            routes.add(new Route(route, 2));
         }
         if (canGoUp(x, y, pos)) {
-            List<Pos> newPos = new ArrayList<>();
-            hardCopy(newPos, pos);
-            newPos.add(new Pos(x, y - 1, newPos, 0, 0));
-            newPos.get(newPos.size() - 1).score = newPos.stream().map(ps -> field.get(ps.y).get(ps.x)).reduce(0, Integer::sum);
-//            if(vals.get(y-1).get(x) > newPos.get(newPos.size()-1).score) vals.get(y-1).set(x, newPos.get(newPos.size()-1).score);
-//            Optional<List<Pos>> routeMatch = routes.stream().filter(rt -> rt.stream().anyMatch(ps -> ps.containsXY(x , y-1 ))).findFirst();
-//            if(routeMatch.isPresent()) {
-//                if (routeMatch.get().stream().anyMatch(ps -> ps.x == x && ps.y == y-1 && ps.score > newPos.get(newPos.size()-1).score)) {
-//                    routes.remove(routeMatch.get());
-//                }
-//            }
-//            routeMatch.ifPresent(posList -> routes.remove(posList));
-            routes.add(newPos);
+            routes.add(new Route(route, 0));
         }
         if (canGoLeft(x, y, pos)) {
-            List<Pos> newPos = new ArrayList<>();
-            hardCopy(newPos, pos);
-            newPos.add(new Pos(x - 1, y, newPos, 3, 0));
-            newPos.get(newPos.size() - 1).score = newPos.stream().map(ps -> field.get(ps.y).get(ps.x)).reduce(0, Integer::sum);
-//            if(vals.get(y).get(x-1) > newPos.get(newPos.size()-1).score) vals.get(y).set(x-1, newPos.get(newPos.size()-1).score);
-//            Optional<List<Pos>> routeMatch = routes.stream().filter(rt -> rt.stream().anyMatch(ps -> ps.containsXY(x -1 , y ))).findFirst();
-//            if(routeMatch.isPresent()) {
-//                if (routeMatch.get().stream().anyMatch(ps -> ps.x == x-1 && ps.y == y && ps.score > newPos.get(newPos.size()-1).score)) {
-//                    routes.remove(routeMatch.get());
-//                }
-//            }
-//            routeMatch.ifPresent(posList -> routes.remove(posList));
-            routes.add(newPos);
+            routes.add(new Route(route, 1));
         }
 
         routes.remove(0);
     }
 
-    private static void hardCopy(List<Pos> dest, List<Pos> src) {
-        src.forEach(rw -> {
-            dest.add(new Pos(rw.x, rw.y, hardCopyTrail(rw.trail), rw.richting, rw.score));
-        });
-    }
-
-    private static List<Pos> hardCopyTrail(List<Pos> pos) {
-        ArrayList<Pos> a = new ArrayList<>();
-        pos.forEach(it -> {
-            a.add(new Pos(it.x, it.y, null, it.richting));
-        });
-        return a;
-    }
-
-
     private static boolean canGoLeft(int x, int y, List<Pos> pos) {
         if (x == 0) return false;
-        if (pos.stream().anyMatch(poss -> poss.containsXY(x - 1, y))) return false;
+        if (pos.stream().anyMatch(poss -> poss.x==x-1 && poss.y == y)) return false;
         if (pos.size() < 4) return true;
         List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
         if (last3.stream().allMatch(ps -> ps.y == y)) {
@@ -212,7 +123,7 @@ public class Day17 {
 
     private static boolean canGoUp(int x, int y, List<Pos> pos) {
         if (y == 0) return false;
-        if (pos.stream().anyMatch(poss -> poss.containsXY(x, y - 1))) return false;
+        if (pos.stream().anyMatch(poss -> poss.x==x && poss.y == y-1)) return false;
         if (pos.size() < 4) return true;
         List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
         if (last3.stream().allMatch(ps -> ps.x == x)) {
@@ -235,7 +146,7 @@ public class Day17 {
 
     private static boolean canGoRight(int x, int y, List<Pos> pos) {
         if (x == field.get(0).size() - 1) return false;
-        if (pos.stream().anyMatch(poss -> poss.containsXY(x + 1, y))) return false;
+        if (pos.stream().anyMatch(poss -> poss.x==x+1 && poss.y == y)) return false;
         if (pos.size() < 4) return true;
         List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
         if (last3.stream().allMatch(ps -> ps.y == y)) {
@@ -257,7 +168,7 @@ public class Day17 {
 
     private static boolean canGoDown(int x, int y, List<Pos> pos) {
         if (y == field.size() - 1) return false;
-        if (pos.stream().anyMatch(poss -> poss.containsXY(x, y + 1))) return false;
+        if (pos.stream().anyMatch(poss -> poss.x==x && poss.y == y+1)) return false;
         if (pos.size() < 4) return true;
         List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
         if (last3.stream().allMatch(ps -> ps.x == x)) {
@@ -280,44 +191,63 @@ public class Day17 {
     private static class Pos {
         public int x;
         public int y;
-        public List<Pos> trail;
         public int richting;
-        public int up;
-        public int down;
-        public int left;
-        public int right;
-        public Integer score;
 
-        public Pos(int x, int y, Integer score, int up, int left, int down, int right) {
-            this.x = x;
-            this.y = y;
-            this.score = score;
-            this.up = up;
-            this.left = left;
-            this.down = down;
-            this.right = right;
-        }
 
-        public Pos(int x, int y, List<Pos> trail, int richting) {
-            this.x = x;
-            this.y = y;
-            this.trail = trail;
+        public Pos(int x, int y, int richting)
+        {
+            this.x=x;
+            this.y =y;
             this.richting = richting;
         }
 
-        public Pos(int x, int y, List<Pos> trail, int richting, Integer score) {
-            this.x = x;
-            this.y = y;
-            this.trail = trail;
-            this.richting = richting;
-            this.score = score;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Pos pos = (Pos) o;
+            return x == pos.x && y == pos.y && richting == pos.richting;
         }
 
-
-        public boolean containsXY(int x, int y) {
-            return trail.stream().anyMatch(pos -> pos.x == x && pos.y == y);
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y, richting);
         }
     }
 
+    private static class Route {
+        public int score;
+        public List<Pos> route = new ArrayList<>();
+
+        public Route() {
+
+        }
+
+        public Route(Route oudeRoute, int direction) {
+            oudeRoute.route.forEach(r -> route.add(new Pos(r.x, r.y, r.richting)));
+            Pos lastPos = route.get(route.size()-1);
+            switch(direction) {
+                case 0 -> {
+                    route.add(new Pos(lastPos.x, lastPos.y-1, direction));
+                    this.score += oudeRoute.score + + field.get(lastPos.x).get(lastPos.y-1);
+                }
+                case 1 -> {
+                    route.add(new Pos(lastPos.x - 1, lastPos.y, direction));
+                    this.score += oudeRoute.score + field.get(lastPos.x-1).get(lastPos.y);
+                }
+                case 2 -> {
+                    route.add(new Pos(lastPos.x, lastPos.y+1, direction));
+                    this.score += oudeRoute.score + field.get(lastPos.x).get(lastPos.y+1);
+                }
+                case 3 -> {
+                    route.add(new Pos(lastPos.x + 1, lastPos.y, direction));
+                    this.score = oudeRoute.score + field.get(lastPos.x+1).get(lastPos.y);
+                }
+
+            }
+        }
+
+
+    }
 
 }
