@@ -152,7 +152,7 @@ public class Day18 {
     }
 
     private static long getOppervlakte(List<Pos> hoeken) {
-        // Start with shoelace
+        // algoritme gestolen van internet
         long area = 0;
         for (int i = 0; i < hoeken.size(); i++) {
             Pos c1 = hoeken.get(i);
@@ -161,7 +161,6 @@ public class Day18 {
             area += factor;
         }
         area /= 2;
-        // Now apply Pick's theorem
         return area - (getAfstand(hoeken) / 2) + 1;
     }
 
