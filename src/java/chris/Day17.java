@@ -2,252 +2,193 @@ package chris;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 
 public class Day17 {
-    private static List<List<Integer>> field = new ArrayList<>();
-    private static List<List<Integer>> lengtes = new ArrayList<>();
-    private static List<Route> routes = new ArrayList<>();
+
 
     public static void main(String[] args) {
         System.out.println(puzzel1());
-//        System.out.println(puzzel2());
+        System.out.println(puzzel2());
     }
 
     // 0 = boven 1 = rechts 2=onder 3 = links
     private static String puzzel1() {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel17.txt"))) {
-
+            int[][] field = new int[141][141];
             String regel;
+            int y=0;
             while ((regel = bufferedReader.readLine()) != null) {
 
-                List<Integer> fill = new ArrayList<>();
                 for (int x = 0; x < regel.length(); x++) {
-                    fill.add(Integer.parseInt(regel.substring(x, x + 1)));
+                    field[y][x] = Integer.parseInt(regel.substring(x, x + 1));
                 }
-                field.add(fill);
+                y++;
             }
-            Route r1 = new Route();
-            r1.route.add(new Pos(1,0, 3));
-            r1.score += field.get(0).get(1);
-            Route r2 = new Route();
-            r2.route.add(new Pos(0,1, 2));
-            r2.score += field.get(1).get(0);
 
-            routes.add(r1);
-            routes.add(r2);
-            long it = 0;
-            while(true) {
-                it++;
-                routes.sort((a, b) -> {
-                    if(a.score != b.score) {
-                        return a.score - b.score;
-                    } else {
-                        if (a.route.size() != b.route.size()) {
-                            return b.route.size() - a.route.size();
-                        } else {
-                            return b.route.get(b.route.size()-1).x - a.route.get(a.route.size()-1).x;
-                        }
-                    }
-                });
-                calc(routes.get(0));
-//                if(routes.size() > 10000)
-//                    routes = routes.subList(0,10000);
-                if(it % 10000 == 0) {
-                    String br = "";
-                }
-                if(routes.get(0).route.get(routes.get(0).route.size()-1).x == field.size()-1 && routes.get(0).route.get(routes.get(0).route.size()-1).y == field.size()-1) {
-                    break;
-                }
-            }
-            routes.forEach(route -> {
-                if (route.route.stream().anyMatch(pos -> pos.x==5 && pos.y==1)) {
-                    String bk = ";";
-                }
-            });
-
-            return "";
+            return String.valueOf(dijkstra(field, true));
         } catch (Exception e) {
             e.printStackTrace();
             return "";
         }
     }
 
-    private static void calc(Route route) {
-        int x = route.route.get(route.route.size()-1).x;
-        int y = route.route.get(route.route.size()-1).y;
-        List<Pos> pos = route.route;
-        if (canGoRight(x, y, pos)) {
-            routes.add(new Route(route, 3));
-        }
+    private static String puzzel2() {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("puzzel17.txt"))) {
+            int[][] field = new int[141][141];
+            String regel;
+            int y=0;
+            while ((regel = bufferedReader.readLine()) != null) {
 
-        if (canGoDown(x, y, pos)) {
-            routes.add(new Route(route, 2));
-        }
-        if (canGoUp(x, y, pos)) {
-            routes.add(new Route(route, 0));
-        }
-        if (canGoLeft(x, y, pos)) {
-            routes.add(new Route(route, 1));
-        }
+                for (int x = 0; x < regel.length(); x++) {
+                    field[y][x] = Integer.parseInt(regel.substring(x, x + 1));
+                }
+                y++;
+            }
 
-        routes.remove(0);
+            return String.valueOf(dijkstra(field, false));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
-    private static boolean canGoLeft(int x, int y, List<Pos> pos) {
-        if (x == 0) return false;
-        if (pos.stream().anyMatch(poss -> poss.x==x-1 && poss.y == y)) return false;
-        if (pos.size() < 4) return true;
-        List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
-        if (last3.stream().allMatch(ps -> ps.y == y)) {
-            if (last3.get(2).x == last3.get(1).x + 1) return false;
-            if (last3.get(2).richting != last3.get(1).richting || last3.get(2).richting != last3.get(0).richting)
-                return true;
-            {
-                if (last3.get(2).x == last3.get(1).x - 1 && last3.get(1).x == last3.get(0).x - 1) return false;
-                else {
-//                    if (vals.get(y).get(x - 1) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-//                    else return false;
-                    return true;
+    private static int dijkstra(int[][] grid, boolean part1) {
+        Queue<Element> queue = new PriorityQueue<>();
+        Set<Node> visited = new HashSet<>();
+        int endX = grid[grid.length - 1].length - 1;
+        int endY = grid.length - 1;
+
+        Node eastStart = new Node(1, 0, 1, Element.EAST);
+        Node southStart = new Node(0, 1, 1, Element.SOUTH);
+        queue.add(new Element(eastStart, grid[0][1]));
+        queue.add(new Element(southStart, grid[1][0]));
+
+        while (!queue.isEmpty()) {
+            final Element current = queue.poll();
+            if (visited.contains(current.getNode())) {
+                continue;
+            }
+            visited.add(current.getNode());
+            if (current.getNode().x() == endX && current.getNode().y() == endY
+                    && (part1 || current.getNode().blocks() >= 4)) {
+                return current.getHeatLoss();
+            }
+
+            queue.addAll(part1 ? current.getNeighbours(grid) : current.getNeighboursForPart2(grid));
+
+        }
+
+        return 0;
+    }
+
+    public static class Element implements Comparable<Element> {
+
+        public static final int NORTH = 0;
+        public static final int EAST = 1;
+        public static final int SOUTH = 2;
+        public static final int WEST = 3;
+
+        private Node node;
+        private int heatLoss;
+
+        public Element(Node node, int heatLoss) {
+            this.node = node;
+            this.heatLoss = heatLoss;
+        }
+
+        public List<Element> getNeighboursForPart2(int[][] grid) {
+            List<Element> neighbours = new ArrayList<>();
+            if (node.blocks() >= 4) {
+                Element left = getNextElement(Math.floorMod(node.direction() - 1, 4), grid, 1);
+                if (left != null) {
+                    neighbours.add(left);
+                }
+
+                Element right = getNextElement((node.direction() + 1) % 4, grid, 1);
+                if (right != null) {
+                    neighbours.add(right);
                 }
             }
-        }
-//        if (vals.get(y).get(x - 1) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-//        return false;
-        return true;
-    }
-
-    private static boolean canGoUp(int x, int y, List<Pos> pos) {
-        if (y == 0) return false;
-        if (pos.stream().anyMatch(poss -> poss.x==x && poss.y == y-1)) return false;
-        if (pos.size() < 4) return true;
-        List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
-        if (last3.stream().allMatch(ps -> ps.x == x)) {
-            if (last3.get(2).y == last3.get(1).y + 1) return false;
-            if (last3.get(2).richting != last3.get(1).richting || last3.get(2).richting != last3.get(0).richting)
-                return true;
-            {
-                if (last3.get(2).y == last3.get(1).y - 1 && last3.get(1).y == last3.get(0).y - 1) return false;
-                else {
-//                    if (vals.get(y-1).get(x) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-//                    else return false;
-                    return true;
-
+            if (node.blocks() < 10) {
+                Element straight = getNextElement(node.direction(), grid, node.blocks() + 1);
+                if (straight != null) {
+                    neighbours.add(straight);
                 }
             }
+            return neighbours;
         }
-//        if (vals.get(y - 1).get(x) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-        return true;
-    }
 
-    private static boolean canGoRight(int x, int y, List<Pos> pos) {
-        if (x == field.get(0).size() - 1) return false;
-        if (pos.stream().anyMatch(poss -> poss.x==x+1 && poss.y == y)) return false;
-        if (pos.size() < 4) return true;
-        List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
-        if (last3.stream().allMatch(ps -> ps.y == y)) {
-            if (last3.get(2).x == last3.get(1).x - 1) return false;
-            if (last3.get(2).richting != last3.get(1).richting || last3.get(2).richting != last3.get(0).richting)
-                return true;
-            {
-                if (last3.get(2).x == last3.get(1).x + 1 && last3.get(1).x == last3.get(0).x + 1) return false;
-                else {
-//                    if (vals.get(y).get(x + 1) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-//                    else return false;
-                    return true;
+        public List<Element> getNeighbours(int[][] grid) {
+            List<Element> neighbours = new ArrayList<>();
+
+            Element left = getNextElement(Math.floorMod(node.direction() - 1, 4), grid, 1);
+            if (left != null) {
+                neighbours.add(left);
+            }
+
+            Element right = getNextElement((node.direction() + 1) % 4, grid, 1);
+            if (right != null) {
+                neighbours.add(right);
+            }
+
+            if (node.blocks() < 3) {
+                Element straight = getNextElement(node.direction(), grid, node.blocks() + 1);
+                if (straight != null) {
+                    neighbours.add(straight);
                 }
             }
-        }
-//        if (vals.get(y).get(x + 1) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-        return true;
-    }
 
-    private static boolean canGoDown(int x, int y, List<Pos> pos) {
-        if (y == field.size() - 1) return false;
-        if (pos.stream().anyMatch(poss -> poss.x==x && poss.y == y+1)) return false;
-        if (pos.size() < 4) return true;
-        List<Pos> last3 = pos.subList(pos.size() - 3, pos.size());
-        if (last3.stream().allMatch(ps -> ps.x == x)) {
-            if (last3.get(2).y == last3.get(1).y - 1) return false;
-            if (last3.get(2).richting != last3.get(1).richting || last3.get(2).richting != last3.get(0).richting)
-                return true;
-            {
-                if (last3.get(2).y == last3.get(1).y + 1 && last3.get(1).y == last3.get(0).y + 1) return false;
-                else {
-//                    if (vals.get(y + 1).get(x) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-//                    else return false;
-                    return true;
-                }
+            return neighbours;
+        }
+
+        private Element getNextElement(int direction, int[][] grid, int blocks) {
+            int x = getNextX(direction);
+            int y = getNextY(direction);
+            if (x >= 0 && x < grid[0].length && y >= 0 && y < grid.length) {
+                Node nextNode = new Node(x, y, blocks, direction);
+                return new Element(nextNode, heatLoss + grid[nextNode.y()][nextNode.x()]);
             }
+            return null;
         }
-//        if (vals.get(y + 1).get(x) > vals.get(y).get(x) + field.get(y).get(x)) return true;
-        return true;
-    }
 
-    private static class Pos {
-        public int x;
-        public int y;
-        public int richting;
+        private int getNextX(int newDirection) {
+            int nextX = newDirection == NORTH || newDirection == SOUTH ? node.x()
+                    : newDirection == EAST ? node.x() + 1 : node.x() - 1;
+            return nextX;
+        }
 
-
-        public Pos(int x, int y, int richting)
-        {
-            this.x=x;
-            this.y =y;
-            this.richting = richting;
+        private int getNextY(int newDirection) {
+            int nextY = newDirection == EAST || newDirection == WEST ? node.y()
+                    : newDirection == NORTH ? node.y() - 1 : node.y() + 1;
+            return nextY;
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Pos pos = (Pos) o;
-            return x == pos.x && y == pos.y && richting == pos.richting;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, y, richting);
-        }
-    }
-
-    private static class Route {
-        public int score;
-        public List<Pos> route = new ArrayList<>();
-
-        public Route() {
-
-        }
-
-        public Route(Route oudeRoute, int direction) {
-            oudeRoute.route.forEach(r -> route.add(new Pos(r.x, r.y, r.richting)));
-            Pos lastPos = route.get(route.size()-1);
-            switch(direction) {
-                case 0 -> {
-                    route.add(new Pos(lastPos.x, lastPos.y-1, direction));
-                    this.score += oudeRoute.score + + field.get(lastPos.x).get(lastPos.y-1);
-                }
-                case 1 -> {
-                    route.add(new Pos(lastPos.x - 1, lastPos.y, direction));
-                    this.score += oudeRoute.score + field.get(lastPos.x-1).get(lastPos.y);
-                }
-                case 2 -> {
-                    route.add(new Pos(lastPos.x, lastPos.y+1, direction));
-                    this.score += oudeRoute.score + field.get(lastPos.x).get(lastPos.y+1);
-                }
-                case 3 -> {
-                    route.add(new Pos(lastPos.x + 1, lastPos.y, direction));
-                    this.score = oudeRoute.score + field.get(lastPos.x+1).get(lastPos.y);
-                }
-
+        public int compareTo(Element o) {
+            if (this.heatLoss != o.getHeatLoss()) {
+                return Integer.compare(this.heatLoss, o.getHeatLoss());
+            } else if (this.node.direction() == o.getNode().direction() && this.node.blocks() != o.getNode().blocks()) {
+                return Integer.compare(this.node.blocks(), o.getNode().blocks());
+            } else if (this.node.y() != o.getNode().y()) {
+                return Integer.compare(this.node.y(), o.getNode().y());
+            } else {
+                return Integer.compare(this.node.x(), o.getNode().x());
             }
         }
 
+        public Node getNode() {
+            return this.node;
+        }
 
+        public int getHeatLoss() {
+            return this.heatLoss;
+        }
+    }
+
+
+    public static record Node (int x, int y, int blocks, int direction) {
     }
 
 }
