@@ -1,20 +1,19 @@
 package chris;
 
-import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class Day24 {
-//    private static final Long MIN_POS = 200000000000000L;
+    //    private static final Long MIN_POS = 200000000000000L;
 //    private static final Long MAX_POS = 400000000000000L;
     private static final Long MIN_POS = 7L;
     private static final Long MAX_POS = 27L;
@@ -40,11 +39,11 @@ public class Day24 {
             }
             System.out.println("Read done");
             List<Line> filteredLijnen = lijnen.stream().filter(lijn -> {
-                if(lijn.x >=+ MIN_POS && lijn.y >= MIN_POS && lijn.x <= MAX_POS && lijn.y <= MAX_POS) return true;
-                if(lijn.x <= MIN_POS && lijn.moveX <= 0) return false;
-                if(lijn.y <= MIN_POS && lijn.moveY <= 0) return false;
-                if(lijn.x >= MAX_POS && lijn.moveX >= 0) return false;
-                if(lijn.y >= MAX_POS && lijn.moveY >= 0) return false;
+                if (lijn.x >= +MIN_POS && lijn.y >= MIN_POS && lijn.x <= MAX_POS && lijn.y <= MAX_POS) return true;
+                if (lijn.x <= MIN_POS && lijn.moveX <= 0) return false;
+                if (lijn.y <= MIN_POS && lijn.moveY <= 0) return false;
+                if (lijn.x >= MAX_POS && lijn.moveX >= 0) return false;
+                if (lijn.y >= MAX_POS && lijn.moveY >= 0) return false;
                 return true;
             }).collect(Collectors.toList());
             System.out.println("Filter done");
@@ -56,23 +55,23 @@ public class Day24 {
             filteredLijnen.forEach(lijn -> {
                 System.out.println("Bereken " + lijn + " vanaf " + pos);
                 filteredLijnen.subList(pos.get(), filteredLijnen.size()).forEach(lijn2 -> {
-                    if(lijn.equals(lijn2)) return;
+                    if (lijn.equals(lijn2)) return;
                     System.out.println("Door naar " + lijn2);
                     Line2D.Double line1 = new Line2D.Double(lijn.x, lijn.y, lijn.maxX, lijn.maxY);
                     Line2D.Double line2 = new Line2D.Double(lijn2.x, lijn2.y, lijn2.maxX, lijn2.maxY);
                     Point2D intersection = getIntersectPoint(line1.getP1(), line1.getP2(), line2.getP1(), line2.getP2());
-                    if(intersection == null) return;
+                    if (intersection == null) return;
                     // intersectiefunctie trekt de lijn ook de andere kant op, daar op controleren
-                    if(intersection.getX() > lijn.x && lijn.moveX < 0) return;
-                    if(intersection.getX() < lijn.x && lijn.moveX > 0) return;
-                    if(intersection.getY() > lijn.y && lijn.moveY < 0) return;
-                    if(intersection.getY() < lijn.y && lijn.moveY > 0) return;
-                    if(intersection.getX() > lijn2.x && lijn2.moveX < 0) return;
-                    if(intersection.getX() < lijn2.x && lijn2.moveX > 0) return;
-                    if(intersection.getY() > lijn2.y && lijn2.moveY < 0) return;
-                    if(intersection.getY() < lijn2.y && lijn2.moveY > 0) return;
+                    if (intersection.getX() > lijn.x && lijn.moveX < 0) return;
+                    if (intersection.getX() < lijn.x && lijn.moveX > 0) return;
+                    if (intersection.getY() > lijn.y && lijn.moveY < 0) return;
+                    if (intersection.getY() < lijn.y && lijn.moveY > 0) return;
+                    if (intersection.getX() > lijn2.x && lijn2.moveX < 0) return;
+                    if (intersection.getX() < lijn2.x && lijn2.moveX > 0) return;
+                    if (intersection.getY() > lijn2.y && lijn2.moveY < 0) return;
+                    if (intersection.getY() < lijn2.y && lijn2.moveY > 0) return;
 
-                    if(intersection.getX() >= MIN_POS && intersection.getX() <= MAX_POS && intersection.getY() >= MIN_POS && intersection.getY() <= MAX_POS) {
+                    if (intersection.getX() >= MIN_POS && intersection.getX() <= MAX_POS && intersection.getY() >= MIN_POS && intersection.getY() <= MAX_POS) {
                         intersect.incrementAndGet();
                         System.out.println("Intersect op " + intersection);
                     }
@@ -104,6 +103,37 @@ public class Day24 {
                 lijnen.add(new Line(Long.parseLong(start[0].trim()), Long.parseLong(start[1].trim()), Long.parseLong(start[2].trim()), Long.parseLong(move[0].trim()), Long.parseLong(move[1].trim()), Long.parseLong(move[2].trim())));
             }
             System.out.println("Read done");
+
+//            while (true) {
+                AtomicLong counter = new AtomicLong();
+                AtomicLong hits = new AtomicLong();
+                lijnen.forEach(lijn -> {
+                    lijnen.forEach(lijn2 -> {
+                        if (lijn.equals(lijn2)) return;
+                        long dX = lijn.currentX - lijn2.currentX;
+                        long dY = lijn.currentY - lijn2.currentY;
+                        long dZ = lijn.currentZ - lijn2.currentZ;
+                        long saveX = lijn2.currentX;
+                        long saveY = lijn2.currentY;
+                        long saveZ = lijn2.currentZ;
+                        for(int x=0; x<10;x++) {
+                            lijnen.forEach(Line::tick);
+                            Optional<Line> match = lijnen.stream().filter(nextLijn -> {
+                                return (lijn2.currentX + dX == nextLijn.currentX &&
+                                        lijn2.currentY + dY == nextLijn.currentY &&
+                                        lijn2.currentZ + dZ == nextLijn.currentZ);
+                            }).findFirst();
+                            if (match.isPresent()) {
+                                System.out.println("drie: " + lijn + " " + lijn2 + " " + match.get());
+                            }
+                        }
+                        lijn2.currentX = saveX;
+                        lijn2.currentY = saveY;
+                        lijn2.currentZ = saveZ;
+                    });
+                    lijnen.forEach(Line::reset);
+                });
+//            }
 
             return "";
 
@@ -149,6 +179,9 @@ public class Day24 {
         public final long moveX;
         public final long moveY;
         public final long moveZ;
+        public long currentX;
+        public long currentY;
+        public long currentZ;
         public long maxX;
         public long maxY;
         public long maxZ;
@@ -160,18 +193,21 @@ public class Day24 {
             this.moveX = moveX;
             this.moveY = moveY;
             this.moveZ = moveZ;
+            currentX = x;
+            currentY = y;
+            currentZ = z;
         }
 
         public void calcMax() {
 
             long xSteps;
-            if(moveX < 0) {
+            if (moveX < 0) {
                 xSteps = (x - MIN_POS) / moveX;
             } else {
                 xSteps = (MAX_POS - x) / moveX;
             }
             long ySteps;
-            if(moveY < 0) {
+            if (moveY < 0) {
                 ySteps = (y - MIN_POS) / moveY;
             } else {
                 ySteps = (MAX_POS - y) / moveY;
@@ -183,6 +219,18 @@ public class Day24 {
             maxY = y + ((minSteps + 1) * moveY);
 
 
+        }
+
+        public void tick() {
+            currentX += moveX;
+            currentY += moveY;
+            currentZ += moveZ;
+        }
+
+        public void reset() {
+            currentX = x;
+            currentY = y;
+            currentZ = z;
         }
 
         @Override
@@ -213,9 +261,6 @@ public class Day24 {
                     '}';
         }
     }
-
-
-
 
 
 }
