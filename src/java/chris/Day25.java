@@ -2,10 +2,16 @@ package chris;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Day25 {
     private static Map<String, String[]> connections = new HashMap<>();
+    private static AtomicLong l = new AtomicLong();
 
     public static void main(String[] args) {
         System.out.println(puzzel1());
@@ -22,20 +28,28 @@ public class Day25 {
                 String[] parts = regel.split(": ");
                 connections.put(parts[0], parts[1].split(" "));
             }
+            connections.forEach((nm, ct) -> {
+                l.set(0);
+                com1.add(nm);
+                connections.forEach((naam, conn) -> {
+                    if (Arrays.stream(conn).anyMatch(str -> com1.contains(str))) {
+                        addDeeperConnections(naam, connections.get(naam), com1);
+                    }
+                });
+                com1.clear();
+                System.out.println("@ " + nm + ": "+l);
+            });
+//            com2.add("rsh");
+//            connections.forEach((naam, conn) -> {
+//                if (Arrays.stream(conn).anyMatch(str -> com2.contains(str))) {
+//                    addDeeperConnections(naam, connections.get(naam), com2);
+//                }
+//            });
+//            connections.forEach((naam, conn) -> {
+//                List<String> passed;
+//
+//            });
 
-            com1.add("pxv");
-            connections.forEach((naam, conn) -> {
-                if (Arrays.stream(conn).anyMatch(str -> com1.contains(str))) {
-                    addDeeperConnections(naam, connections.get(naam), com1);
-                }
-            });
-            com2.add("tgb");
-            connections.forEach((naam, conn) -> {
-                if (Arrays.stream(conn).anyMatch(str -> com2.contains(str))) {
-                    addDeeperConnections(naam, connections.get(naam), com2);
-                }
-            });
-            System.out.println("overlap " + com1.stream().filter(str -> com2.stream().anyMatch(s -> s.equals(str))).count());
             return "";
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,7 +72,8 @@ public class Day25 {
     }
 
     private static void addDeeperConnections(String naam, String[] con, List<String> target) {
-        if (!target.contains(naam)) target.add(naam);
+        l.incrementAndGet();
+        if (!target.subList(1, target.size()).contains(naam)) target.add(naam);
         if (!connections.containsKey(naam)) return;
         for (int x = 0; x < con.length; x++) {
             String[] c = connections.get(con[x]);
